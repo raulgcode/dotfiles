@@ -55,8 +55,12 @@ configure_macos() {
     defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
     # Set keyboard repeat speed to maximum (fastest repeat, shortest delay)
+    # Apply both to the global domain and the current host to be robust
     defaults write NSGlobalDomain KeyRepeat -int 1
+    defaults -currentHost write NSGlobalDomain KeyRepeat -int 1 2>/dev/null || true
     defaults write NSGlobalDomain InitialKeyRepeat -int 10
+    defaults -currentHost write NSGlobalDomain InitialKeyRepeat -int 10 2>/dev/null || true
+    print_info "Keyboard repeat configured: KeyRepeat=1 InitialKeyRepeat=10"
     
     #---------------------------------------------------------------------------
     # Finder
