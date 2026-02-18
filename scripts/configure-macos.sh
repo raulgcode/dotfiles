@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Source shared helper functions if available
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/utils.sh" ]; then
+# Use a local variable to avoid clobbering the caller's SCRIPT_DIR
+CONFIG_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$CONFIG_SCRIPT_DIR/utils.sh" ]; then
     # shellcheck source=/dev/null
-    source "$SCRIPT_DIR/utils.sh"
+    source "$CONFIG_SCRIPT_DIR/utils.sh"
 fi
 
 #===============================================================================
