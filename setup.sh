@@ -106,6 +106,9 @@ main() {
     echo "  • ZSH plugins (autosuggestions, syntax-highlighting)"
     echo ""
     
+    # Source utility functions (needed by early steps)
+    source "$SCRIPT_DIR/scripts/utils.sh"
+
     # If running in an interactive terminal, prompt; otherwise continue (curl | bash)
     if [ -t 0 ]; then
         read -p "Press Enter to continue or Ctrl+C to cancel..."
@@ -113,8 +116,13 @@ main() {
         print_info "Non-interactive shell detected; proceeding with setup"
     fi
 
-    # Source utility functions
-    source "$SCRIPT_DIR/scripts/utils.sh"
+    # Run macOS configuration first (can be skipped by setting SKIP_MACOS_CONFIG=1)
+    if [ "${SKIP_MACOS_CONFIG:-0}" != "1" ]; then
+        print_header "Applying macOS Settings (early)"
+        source "$SCRIPT_DIR/scripts/configure-macos.sh"
+    else
+        print_info "Skipping early macOS configuration (SKIP_MACOS_CONFIG=1)"
+    fi
 
     # Run installation scripts in order
     print_header "Installing Xcode Command Line Tools"
@@ -135,8 +143,11 @@ main() {
     print_header "Configuring ZSH Plugins"
     source "$SCRIPT_DIR/scripts/install-zsh-plugins.sh"
 
-    print_header "Applying macOS Settings"
-    source "$SCRIPT_DIR/scripts/configure-macos.sh"
+    # macOS settings were applied early; skip here unless explicitly requested
+    if [ "${FORCE_MACOS_CONFIG_AT_END:-0}" = "1" ]; then
+        print_header "Applying macOS Settings (end)"
+        source "$SCRIPT_DIR/scripts/configure-macos.sh"
+    fi
 
     # Print installation report
     print_installation_report

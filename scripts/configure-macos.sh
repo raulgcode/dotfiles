@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Source shared helper functions if available
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/utils.sh" ]; then
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/utils.sh"
+fi
+
 #===============================================================================
 # macOS System Configuration
 #===============================================================================
@@ -39,16 +46,16 @@ configure_macos() {
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
     
-    # Enable three finger drag
+    # Enable three finger drag (drag windows with three fingers)
     defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
-    
+
     # Disable press-and-hold for keys in favor of key repeat
     defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-    
-    # Set fast keyboard repeat rate
-    defaults write NSGlobalDomain KeyRepeat -int 2
-    defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+    # Set keyboard repeat speed to maximum (fastest repeat, shortest delay)
+    defaults write NSGlobalDomain KeyRepeat -int 1
+    defaults write NSGlobalDomain InitialKeyRepeat -int 10
     
     #---------------------------------------------------------------------------
     # Finder
@@ -62,6 +69,9 @@ configure_macos() {
     
     # Show path bar
     defaults write com.apple.finder ShowPathbar -bool true
+
+    # Show hidden files (dotfiles like .env, .gitignore, etc.)
+    defaults write com.apple.finder AppleShowAllFiles -bool true
     
     # Display full POSIX path as Finder window title
     defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
@@ -101,17 +111,46 @@ configure_macos() {
     # Show indicator lights for open applications
     defaults write com.apple.dock show-process-indicators -bool true
     
-    # Automatically hide and show the Dock
-    defaults write com.apple.dock autohide -bool true
-    
-    # Remove the auto-hiding Dock delay
-    defaults write com.apple.dock autohide-delay -float 0
-    
-    # Remove the animation when hiding/showing the Dock
-    defaults write com.apple.dock autohide-time-modifier -float 0.3
+    # Ensure the Dock is always visible (do not auto-hide)
+    defaults write com.apple.dock autohide -bool false
+    # Remove any autohide delay/time modifier if present
+    defaults delete com.apple.dock autohide-delay 2>/dev/null || true
+    defaults delete com.apple.dock autohide-time-modifier 2>/dev/null || true
     
     # Don't show recent applications in Dock
     defaults write com.apple.dock show-recents -bool false
+
+    #-----------------------------------------------------------------------
+    # Remove unwanted default apps from Dock (only remove Dock entries; do not uninstall apps)
+    #-----------------------------------------------------------------------
+    DOCK_PLIST="$HOME/Library/Preferences/com.apple.dock.plist"
+    BACKUP_PLIST="$HOME/Library/Preferences/com.apple.dock.plist.bak.$(date +%s)"
+    if [ -f "$DOCK_PLIST" ]; then
+        cp "$DOCK_PLIST" "$BACKUP_PLIST" 2>/dev/null || true
+        print_info "Backed up Dock preferences to ${BACKUP_PLIST}"
+
+        # Apps to remove (file-label values). Try common names for Apple TV (TV / Apple TV)
+        apps_to_remove=("Photos" "Maps" "FaceTime" "Reminders" "TV" "Apple TV" "Music" "Apple Music")
+
+        for app_label in "${apps_to_remove[@]}"; do
+            idx=0
+            while true; do
+                label=$(/usr/libexec/PlistBuddy -c "Print :persistent-apps:${idx}:tile-data:file-label" "$DOCK_PLIST" 2>/dev/null || true)
+                if [ -z "$label" ]; then
+                    break
+                fi
+
+                if [ "$label" = "$app_label" ]; then
+                    /usr/libexec/PlistBuddy -c "Delete :persistent-apps:${idx}" "$DOCK_PLIST" 2>/dev/null || true
+                    print_info "Removed ${app_label} from Dock"
+                    # don't increment idx because items shift down after delete
+                    continue
+                fi
+
+                idx=$((idx + 1))
+            done
+        done
+    fi
     
     #---------------------------------------------------------------------------
     # Screenshots
