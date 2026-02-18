@@ -30,12 +30,31 @@ NC='\033[0m' # No Color
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# If running via curl, clone the repo first
+# Repository to clone when running via curl. Can be overridden with env var DOTFILES_REPO
+DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/raulgcode/dotfiles.git}"
+
+# If scripts folder not present (e.g. running via curl | bash), fetch the repo contents
 if [[ ! -d "$SCRIPT_DIR/scripts" ]]; then
-    echo -e "${CYAN}Downloading dotfiles...${NC}"
+    echo -e "${CYAN}Fetching dotfiles from ${DOTFILES_REPO}...${NC}"
     TEMP_DIR=$(mktemp -d)
-    git clone --depth 1 https://github.com/YOUR_USERNAME/dotfiles.git "$TEMP_DIR"
-    cd "$TEMP_DIR"
+
+    if command_exists git; then
+        git clone --depth 1 "$DOTFILES_REPO" "$TEMP_DIR" || {
+            print_error "Failed to clone $DOTFILES_REPO"
+            exit 1
+        }
+    else
+        # Fall back to downloading tarball if git is not available
+        print_info "git not found, downloading tarball instead"
+        curl -fsSL "${DOTFILES_REPO%.*}/archive/refs/heads/main.tar.gz" | tar -xz -C "$TEMP_DIR" --strip-components=1 || {
+            print_error "Failed to download repository tarball"
+            exit 1
+        }
+    fi
+
+    # Ensure scripts are executable
+    chmod +x "$TEMP_DIR/scripts"/*.sh 2>/dev/null || true
+
     SCRIPT_DIR="$TEMP_DIR"
 fi
 
@@ -87,7 +106,12 @@ main() {
     echo "  • ZSH plugins (autosuggestions, syntax-highlighting)"
     echo ""
     
-    read -p "Press Enter to continue or Ctrl+C to cancel..."
+    # If running in an interactive terminal, prompt; otherwise continue (curl | bash)
+    if [ -t 0 ]; then
+        read -p "Press Enter to continue or Ctrl+C to cancel..."
+    else
+        print_info "Non-interactive shell detected; proceeding with setup"
+    fi
 
     # Source utility functions
     source "$SCRIPT_DIR/scripts/utils.sh"

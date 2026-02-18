@@ -7,7 +7,7 @@ Automated setup script for configuring a new Mac with essential development tool
 Run this single command to set up your entire development environment:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/dotfiles/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/raulgcode/dotfiles/main/setup.sh | bash -s --
 ```
 
 Or clone and run locally:
@@ -222,6 +222,26 @@ brew bundle check --file=configs/Brewfile
 # List what's in the Brewfile
 brew bundle list --file=configs/Brewfile
 ```
+
+## One-line Installer (curl)
+
+For a quick, non-interactive install from the published repository, run the one-line installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/raulgcode/dotfiles/main/setup.sh | bash -s --
+```
+
+Notes:
+- You can override the repository used by the installer by setting `DOTFILES_REPO`:
+
+```bash
+DOTFILES_REPO="https://github.com/yourname/dotfiles.git" \
+   curl -fsSL https://raw.githubusercontent.com/raulgcode/dotfiles/main/setup.sh | bash -s --
+```
+- The installer attempts a `git` clone when available and falls back to downloading a tarball of the `main` branch when `git` is not present.
+- The script detects non-interactive shells and proceeds without prompting; if you run it in an interactive terminal you'll see a confirmation prompt before continuing.
+- For safety, review `setup.sh` before piping it into `bash` if you have concerns.
+
 
 ## Troubleshooting
 
