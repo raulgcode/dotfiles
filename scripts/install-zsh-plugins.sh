@@ -81,8 +81,42 @@ configure_zsh() {
     add_to_file "alias gd='git diff'" "$zshrc"
     add_to_file "alias code.='code .'" "$zshrc"
     
-    print_success "ZSH configured"
-    add_success "ZSH Configuration"
+        # Ensure NVM is loaded and add automatic .nvmrc switching
+        if ! grep -q "load-nvmrc" "$zshrc" 2>/dev/null; then
+                cat >> "$zshrc" <<'EOF'
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+autoload -U add-zsh-hook
+load-nvmrc() {
+    local node_version="$(nvm version 2>/dev/null)"
+    local nvmrc_path="$(nvm_find_nvmrc 2>/dev/null)"
+
+    if [ -n "$nvmrc_path" ]; then
+        local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")" 2>/dev/null)
+
+        if [ "$nvmrc_node_version" = "N/A" ]; then
+            nvm install
+        elif [ "$nvmrc_node_version" != "$node_version" ]; then
+            nvm use
+        fi
+    elif [ "$node_version" != "$(nvm version default 2>/dev/null)" ]; then
+        echo "Reverting to nvm default version"
+        nvm use default
+    fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+EOF
+                print_info "Appended nvm auto-load block to $zshrc"
+        else
+                print_info "nvm auto-load block already present in $zshrc"
+        fi
+
+        print_success "ZSH configured"
+        add_success "ZSH Configuration"
 }
 
 # Run installation
