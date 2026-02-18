@@ -1,0 +1,90 @@
+#!/bin/bash
+
+#===============================================================================
+# ZSH Plugins Installation
+#===============================================================================
+
+install_zsh_plugins() {
+    print_step "Installing ZSH plugins via Homebrew..."
+    
+    # Install plugins
+    install_formula "zsh-autosuggestions"
+    install_formula "zsh-syntax-highlighting"
+    
+    print_success "ZSH plugins installation completed"
+}
+
+configure_zsh() {
+    print_step "Configuring ZSH..."
+    
+    local zshrc="$HOME/.zshrc"
+    
+    # Backup existing .zshrc
+    backup_file "$zshrc"
+    
+    # Create .zshrc if it doesn't exist
+    touch "$zshrc"
+    
+    # Add Homebrew to PATH (Apple Silicon)
+    if [[ $(uname -m) == "arm64" ]]; then
+        add_to_file 'eval "$(/opt/homebrew/bin/brew shellenv)"' "$zshrc"
+    fi
+    
+    # Add zsh-autosuggestions
+    local autosuggestions_path=""
+    if [[ $(uname -m) == "arm64" ]]; then
+        autosuggestions_path="/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+    else
+        autosuggestions_path="/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+    fi
+    
+    if [[ -f "$autosuggestions_path" ]]; then
+        add_to_file "" "$zshrc"
+        add_to_file "# ZSH Autosuggestions" "$zshrc"
+        add_to_file "source $autosuggestions_path" "$zshrc"
+    else
+        print_warning "zsh-autosuggestions not found at $autosuggestions_path"
+    fi
+    
+    # Add zsh-syntax-highlighting (must be last)
+    local syntax_path=""
+    if [[ $(uname -m) == "arm64" ]]; then
+        syntax_path="/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    else
+        syntax_path="/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    fi
+    
+    if [[ -f "$syntax_path" ]]; then
+        add_to_file "" "$zshrc"
+        add_to_file "# ZSH Syntax Highlighting (must be at the end)" "$zshrc"
+        add_to_file "source $syntax_path" "$zshrc"
+    else
+        print_warning "zsh-syntax-highlighting not found at $syntax_path"
+    fi
+    
+    # Add nvm configuration
+    add_to_file "" "$zshrc"
+    add_to_file "# NVM Configuration" "$zshrc"
+    add_to_file 'export NVM_DIR="$HOME/.nvm"' "$zshrc"
+    add_to_file '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' "$zshrc"
+    add_to_file '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' "$zshrc"
+    
+    # Add useful aliases
+    add_to_file "" "$zshrc"
+    add_to_file "# Aliases" "$zshrc"
+    add_to_file "alias ll='ls -la'" "$zshrc"
+    add_to_file "alias la='ls -A'" "$zshrc"
+    add_to_file "alias l='ls -CF'" "$zshrc"
+    add_to_file "alias gs='git status'" "$zshrc"
+    add_to_file "alias gp='git pull'" "$zshrc"
+    add_to_file "alias gc='git commit'" "$zshrc"
+    add_to_file "alias gd='git diff'" "$zshrc"
+    add_to_file "alias code.='code .'" "$zshrc"
+    
+    print_success "ZSH configured"
+    add_success "ZSH Configuration"
+}
+
+# Run installation
+install_zsh_plugins
+configure_zsh

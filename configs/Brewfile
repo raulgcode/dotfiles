@@ -1,0 +1,98 @@
+#===============================================================================
+# Brewfile
+# 
+# Homebrew Bundle file for automated installation
+# Run: brew bundle --file=configs/Brewfile
+#
+# Format:
+#   tap "repository/name"     - Add a tap
+#   brew "formula"            - Install a formula
+#   cask "application"        - Install a cask (GUI application)
+#   mas "App Name", id: 12345 - Install from Mac App Store
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# Taps
+#-------------------------------------------------------------------------------
+tap "homebrew/bundle"
+
+#-------------------------------------------------------------------------------
+# CLI Tools
+#-------------------------------------------------------------------------------
+# Core utilities
+brew "git"
+brew "wget"
+brew "curl"
+brew "jq"
+brew "tree"
+brew "htop"
+brew "tldr"
+
+# Development
+brew "python@3.12"
+brew "gh"
+
+# ZSH enhancements
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
+
+# Utilities
+brew "defaultbrowser"
+
+#-------------------------------------------------------------------------------
+# Applications (Casks)
+#-------------------------------------------------------------------------------
+# Browsers
+cask "google-chrome"
+
+# Development
+cask "visual-studio-code"
+cask "docker"
+cask "postman"
+
+# Fonts (optional - uncomment if needed)
+# cask "font-fira-code"
+# cask "font-jetbrains-mono"
+# cask "font-meslo-lg-nerd-font"
+
+#-------------------------------------------------------------------------------
+# Optional Applications (uncomment as needed)
+#-------------------------------------------------------------------------------
+# Communication
+# cask "slack"
+cask "discord"
+# cask "zoom"
+
+# Productivity
+# cask "notion"
+# cask "obsidian"
+# cask "rectangle"
+
+# Browsers
+cask "firefox"
+# cask "brave-browser"
+# cask "arc"
+
+# Development Tools
+cask "warp"
+# cask "iterm2"
+# cask "tableplus"
+# cask "insomnia"
+# cask "figma"
+
+# Utilities
+# cask "alfred"
+# cask "raycast"
+# cask "1password"
+# cask "spotify"
+
+#-------------------------------------------------------------------------------
+# Mac App Store Apps (requires 'mas' to be installed)
+#-------------------------------------------------------------------------------
+brew "mas"
+
+# Uncomment the apps you want to install from the Mac App Store
+# Find app IDs at: https://github.com/mas-cli/mas#usage
+# mas "Xcode", id: 497799835
+# mas "Magnet", id: 441258766
+# mas "Bear", id: 1091189122

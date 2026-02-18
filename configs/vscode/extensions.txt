@@ -1,0 +1,123 @@
+#===============================================================================
+# VS Code Extensions
+# 
+# This file contains a curated list of VS Code extensions.
+# Add or remove extensions as needed for your workflow.
+#
+# Format: publisher.extension-name
+# Lines starting with # are comments
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+# AI & Copilot
+#-------------------------------------------------------------------------------
+github.copilot
+github.copilot-chat
+anthropic.claude-code
+
+#-------------------------------------------------------------------------------
+# Code Formatting & Linting
+#-------------------------------------------------------------------------------
+esbenp.prettier-vscode
+dbaeumer.vscode-eslint
+stylelint.vscode-stylelint
+editorconfig.editorconfig
+
+#-------------------------------------------------------------------------------
+# Git & Version Control
+#-------------------------------------------------------------------------------
+eamodio.gitlens
+github.vscode-github-actions
+github.vscode-pull-request-github
+mhutchie.git-graph
+
+#-------------------------------------------------------------------------------
+# JavaScript & TypeScript
+#-------------------------------------------------------------------------------
+ms-vscode.vscode-typescript-next
+yoavbls.pretty-ts-errors
+dsznajder.es7-react-js-snippets
+burkeholland.simple-react-snippets
+
+#-------------------------------------------------------------------------------
+# Testing
+#-------------------------------------------------------------------------------
+vitest.explorer
+ms-playwright.playwright
+
+#-------------------------------------------------------------------------------
+# CSS & Styling
+#-------------------------------------------------------------------------------
+bradlc.vscode-tailwindcss
+csstools.postcss
+styled-components.vscode-styled-components
+
+#-------------------------------------------------------------------------------
+# HTML & Markup
+#-------------------------------------------------------------------------------
+formulahendry.auto-close-tag
+formulahendry.auto-rename-tag
+vincaslt.highlight-matching-tag
+naumovs.color-highlight
+
+#-------------------------------------------------------------------------------
+# Database & API
+#-------------------------------------------------------------------------------
+prisma.prisma
+ckolkman.vscode-postgres
+rangav.vscode-thunder-client
+
+#-------------------------------------------------------------------------------
+# Remote Development
+#-------------------------------------------------------------------------------
+ms-vscode-remote.remote-ssh
+ms-vscode-remote.remote-containers
+ms-vscode-remote.vscode-remote-extensionpack
+
+#-------------------------------------------------------------------------------
+# Docker & DevOps
+#-------------------------------------------------------------------------------
+ms-azuretools.vscode-docker
+ms-kubernetes-tools.vscode-kubernetes-tools
+redhat.vscode-yaml
+
+#-------------------------------------------------------------------------------
+# Python
+#-------------------------------------------------------------------------------
+ms-python.python
+ms-python.vscode-pylance
+ms-python.debugpy
+
+#-------------------------------------------------------------------------------
+# Editor Enhancement
+#-------------------------------------------------------------------------------
+christian-kohler.path-intellisense
+streetsidesoftware.code-spell-checker
+usernamehw.errorlens
+wayou.vscode-todo-highlight
+gruntfuggly.todo-tree
+wix.vscode-import-cost
+PKief.material-icon-theme
+aaron-bond.better-comments
+
+#-------------------------------------------------------------------------------
+# Markdown & Documentation
+#-------------------------------------------------------------------------------
+yzhang.markdown-all-in-one
+bierner.markdown-preview-github-styles
+davidanson.vscode-markdownlint
+
+#-------------------------------------------------------------------------------
+# REST & API Testing
+#-------------------------------------------------------------------------------
+humao.rest-client
+
+#-------------------------------------------------------------------------------
+# File Support
+#-------------------------------------------------------------------------------
+mikestead.dotenv
+tamasfe.even-better-toml
+
+#-------------------------------------------------------------------------------
+# Add your custom extensions below
+#-------------------------------------------------------------------------------
