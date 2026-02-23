@@ -62,6 +62,7 @@ cask "antigravity"
 # Communication
 # cask "slack"
 cask "discord"
+cask "whatsapp"
 # cask "zoom"
 
 # Productivity
