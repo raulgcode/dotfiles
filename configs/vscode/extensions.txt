@@ -1,5 +1,5 @@
 #===============================================================================
-# VS Code Extensions
+# VS Code Extensions v2
 # 
 # This file contains a curated list of VS Code extensions.
 # Add or remove extensions as needed for your workflow.
