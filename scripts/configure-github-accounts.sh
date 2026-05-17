@@ -253,8 +253,8 @@ main() {
     prompt_if_empty PERSONAL_KEY_PATH "Personal SSH private key path" "$HOME/.ssh/id_ed25519_github_personal"
     prompt_if_empty WORK_KEY_PATH "Work SSH private key path" "$HOME/.ssh/id_ed25519_github_work"
 
-    prompt_if_empty PERSONAL_GITDIR "Personal repos directory pattern" "$HOME/code/personal/"
-    prompt_if_empty WORK_GITDIR "Work repos directory pattern" "$HOME/code/work/"
+    prompt_if_empty PERSONAL_GITDIR "Personal repos directory pattern" "$HOME/sources/personal/"
+    prompt_if_empty WORK_GITDIR "Work repos directory pattern" "$HOME/sources/work/"
 
     ensure_ssh_key "$PERSONAL_KEY_PATH" "$PERSONAL_ACCOUNT_EMAIL" || return 1
     ensure_ssh_key "$WORK_KEY_PATH" "$WORK_ACCOUNT_EMAIL" || return 1
