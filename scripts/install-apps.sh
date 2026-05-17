@@ -9,18 +9,18 @@ BREWFILE="$_APPS_SCRIPT_DIR/../configs/Brewfile"
 
 install_applications() {
     print_step "Installing applications via Homebrew..."
-    
+
     # Core applications (always install)
     install_cask "google-chrome"
     install_cask "visual-studio-code"
     install_cask "claude"
     install_cask "docker"
     install_cask "postman"
-    
+
     # Additional apps from Brewfile (if configured)
     if [[ -f "$BREWFILE" ]]; then
         print_step "Installing additional applications from Brewfile..."
-        
+
         # Parse casks from Brewfile (excluding comments)
         while IFS= read -r line || [[ -n "$line" ]]; do
             # Match cask declarations (not commented)
@@ -38,13 +38,13 @@ install_applications() {
             fi
         done < "$BREWFILE"
     fi
-    
+
     print_success "Application installation completed"
 }
 
 set_default_browser() {
     print_step "Setting Chrome as default browser..."
-    
+
     # Check if defaultbrowser is available, if not install it
     if ! command_exists defaultbrowser; then
         if brew install defaultbrowser 2>&1; then
@@ -55,7 +55,7 @@ set_default_browser() {
             return 1
         fi
     fi
-    
+
     # Set Chrome as default
     if defaultbrowser chrome 2>/dev/null; then
         print_success "Chrome set as default browser"
@@ -67,7 +67,7 @@ set_default_browser() {
 
 start_docker() {
     print_step "Starting Docker Desktop..."
-    
+
     if app_installed "Docker"; then
         open -a Docker 2>/dev/null || true
         print_success "Docker Desktop started"
