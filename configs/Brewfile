@@ -48,6 +48,7 @@ cask "google-chrome"
 # Development
 cask "visual-studio-code"
 cask "cursor"
+cask "claude"
 cask "docker"
 cask "postman"
 cask "antigravity"

@@ -13,6 +13,7 @@ install_applications() {
     # Core applications (always install)
     install_cask "google-chrome"
     install_cask "visual-studio-code"
+    install_cask "claude"
     install_cask "docker"
     install_cask "postman"
     
@@ -27,7 +28,7 @@ install_applications() {
                 local cask="${BASH_REMATCH[1]}"
                 # Skip core apps already installed above
                 case "$cask" in
-                    google-chrome|visual-studio-code|docker|postman)
+                    google-chrome|visual-studio-code|claude|docker|postman)
                         continue
                         ;;
                     *)

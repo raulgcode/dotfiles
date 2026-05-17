@@ -100,7 +100,7 @@ main() {
     echo -e "${BLUE}This script will install and configure:${NC}"
     echo "  • Xcode Command Line Tools"
     echo "  • Homebrew"
-    echo "  • Applications (Chrome, VS Code, Docker, Postman)"
+    echo "  • Applications (Chrome, VS Code, Claude, Docker, Postman)"
     echo "  • Development tools (Python, Node.js via nvm, gh CLI)"
     echo "  • VS Code extensions"
     echo "  • ZSH plugins (autosuggestions, syntax-highlighting)"

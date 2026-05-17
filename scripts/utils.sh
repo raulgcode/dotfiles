@@ -211,6 +211,7 @@ get_app_name_for_cask() {
         google-chrome) echo "Google Chrome" ;;
         visual-studio-code) echo "Visual Studio Code" ;;
         cursor) echo "Cursor" ;;
+        claude) echo "Claude" ;;
         docker) echo "Docker" ;;
         postman) echo "Postman" ;;
         discord) echo "Discord" ;;
