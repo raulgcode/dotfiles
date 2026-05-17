@@ -70,7 +70,7 @@ function Show-InstallationReport {
     Write-Host "  Installation Report" -ForegroundColor Magenta
     Write-Host ("=" * 60) -ForegroundColor Magenta
     Write-Host ""
-    
+
     if ($script:SuccessfulInstalls.Count -gt 0) {
         Write-Host "✓ Successfully Installed ($($script:SuccessfulInstalls.Count)):" -ForegroundColor Green
         foreach ($item in $script:SuccessfulInstalls) {
@@ -78,7 +78,7 @@ function Show-InstallationReport {
         }
         Write-Host ""
     }
-    
+
     if ($script:UpgradedInstalls.Count -gt 0) {
         Write-Host "↑ Upgraded ($($script:UpgradedInstalls.Count)):" -ForegroundColor Cyan
         foreach ($item in $script:UpgradedInstalls) {
@@ -86,7 +86,7 @@ function Show-InstallationReport {
         }
         Write-Host ""
     }
-    
+
     if ($script:SkippedInstalls.Count -gt 0) {
         Write-Host "⊘ Skipped ($($script:SkippedInstalls.Count)):" -ForegroundColor Yellow
         foreach ($item in $script:SkippedInstalls) {
@@ -94,7 +94,7 @@ function Show-InstallationReport {
         }
         Write-Host ""
     }
-    
+
     if ($script:FailedInstalls.Count -gt 0) {
         Write-Host "✗ Failed ($($script:FailedInstalls.Count)):" -ForegroundColor Red
         foreach ($item in $script:FailedInstalls) {
@@ -124,13 +124,13 @@ function Test-Admin {
 # Install or check for chocolatey package
 function Install-ChocoPackage {
     param([string]$PackageName)
-    
+
     if (choco list --local-only | Select-String -Pattern "^$PackageName\s" -Quiet) {
         Write-Success "$PackageName is already installed"
         Add-Skipped $PackageName "Already installed"
         return $true
     }
-    
+
     Write-Step "Installing $PackageName..."
     try {
         choco install $PackageName -y --no-progress 2>&1 | Out-Null
@@ -148,22 +148,22 @@ function Install-ChocoPackage {
 # Install or check for winget package
 function Install-WingetPackage {
     param([string]$PackageId, [string]$DisplayName = $PackageId)
-    
+
     Write-Step "Checking for $DisplayName..."
-    
+
     # Check if already installed
     $installed = winget list --id $PackageId -e 2>&1 | Select-String -Pattern $PackageId -Quiet
-    
+
     if ($installed) {
         Write-Success "$DisplayName is already installed"
         Add-Skipped $DisplayName "Already installed"
         return $true
     }
-    
+
     Write-Step "Installing $DisplayName..."
     try {
         winget install --id=$PackageId --exact --silent 2>&1 | Out-Null
-        
+
         # Verify installation
         $installed = winget list --id $PackageId -e 2>&1 | Select-String -Pattern $PackageId -Quiet
         if ($installed) {
@@ -187,7 +187,7 @@ function Install-WingetPackage {
 # Safe execution wrapper
 function Invoke-SafeCommand {
     param([string]$Description, [scriptblock]$Command)
-    
+
     Write-Step "$Description..."
     try {
         & $Command
@@ -204,7 +204,7 @@ function Invoke-SafeCommand {
 # Download file with error handling
 function Get-RemoteFile {
     param([string]$Uri, [string]$OutFile)
-    
+
     try {
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri $Uri -OutFile $OutFile -UseBasicParsing
@@ -216,10 +216,75 @@ function Get-RemoteFile {
     }
 }
 
+# Integrate a file into target path, creating parent directories and backing up existing file
+function Integrate-File {
+    param(
+        [Parameter(Mandatory = $true)][string]$SourcePath,
+        [Parameter(Mandatory = $true)][string]$TargetPath,
+        [string]$BackupSuffix = (Get-Date -Format "yyyyMMdd_HHmmss")
+    )
+
+    try {
+        if (-not (Test-Path $SourcePath)) {
+            Write-Error-Custom "Source file not found: $SourcePath"
+            return $false
+        }
+
+        $targetDirectory = Split-Path -Parent $TargetPath
+        if ($targetDirectory -and -not (Test-Path $targetDirectory)) {
+            New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+        }
+
+        if (Test-Path $TargetPath) {
+            $backupPath = "$TargetPath.backup.$BackupSuffix"
+            Copy-Item -Path $TargetPath -Destination $backupPath -Force
+            Write-Info "Backed up existing file to $backupPath"
+        }
+
+        Copy-Item -Path $SourcePath -Destination $TargetPath -Force
+        Write-Success "Integrated file into $TargetPath"
+        return $true
+    }
+    catch {
+        Write-Error-Custom "Failed to integrate file: $_"
+        return $false
+    }
+}
+
+# Download a remote file and integrate it into the desired target path
+function Install-RemoteFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$Uri,
+        [Parameter(Mandatory = $true)][string]$TargetPath
+    )
+
+    $tempFile = [System.IO.Path]::GetTempFileName()
+
+    try {
+        if (-not (Get-RemoteFile -Uri $Uri -OutFile $tempFile)) {
+            Add-Failure $TargetPath "Download failed"
+            return $false
+        }
+
+        if (-not (Integrate-File -SourcePath $tempFile -TargetPath $TargetPath)) {
+            Add-Failure $TargetPath "Integration failed"
+            return $false
+        }
+
+        Add-Success $TargetPath
+        return $true
+    }
+    finally {
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 # Expand archive
 function Expand-Archive-Safe {
     param([string]$Path, [string]$DestinationPath)
-    
+
     try {
         if (Test-Path $DestinationPath) {
             Remove-Item $DestinationPath -Recurse -Force
@@ -236,14 +301,14 @@ function Expand-Archive-Safe {
 # Check if program is installed (by checking PATH)
 function Test-ProgramInstalled {
     param([string]$ProgramName)
-    
+
     return (Test-Command $ProgramName) -or (Get-Command $ProgramName -ErrorAction SilentlyContinue)
 }
 
 # Get installed version of program
 function Get-ProgramVersion {
     param([string]$ProgramName, [string]$VersionFlag = "--version")
-    
+
     try {
         $version = & $ProgramName $VersionFlag 2>&1 | Select-Object -First 1
         return $version -replace "^[^\d]*", "" # Remove leading non-numeric chars

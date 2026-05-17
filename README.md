@@ -43,46 +43,47 @@ cd dotfiles
 
 ### Applications
 
-| Application | macOS | Windows |
-|-------------|-------|---------|
-| Google Chrome | ✓ | ✓ |
-| Visual Studio Code | ✓ | ✓ |
-| Docker Desktop | ✓ | ✓ |
-| Postman | ✓ | ✓ |
-| Discord | ✓ | ✓ |
-| Firefox | ✓ | ✓ |
-| Windows Terminal | ✗ | ✓ |
-| 7-Zip | ✗ | ✓ |
+| Application        | macOS | Windows |
+| ------------------ | ----- | ------- |
+| Google Chrome      | ✓     | ✓       |
+| Visual Studio Code | ✓     | ✓       |
+| Docker Desktop     | ✓     | ✓       |
+| Postman            | ✓     | ✓       |
+| Cursor             | ✓     | ✓       |
+| Discord            | ✓     | ✓       |
+| Firefox            | ✓     | ✓       |
+| Windows Terminal   | ✗     | ✓       |
+| 7-Zip              | ✗     | ✓       |
 
 ### Development Tools
 
-| Tool | macOS | Windows |
-|------|-------|---------|
-| Git | ✓ | ✓ |
-| Python 3.12 | ✓ | ✓ |
-| Node.js (via nvm) | ✓ *nvm* | ✓ *nvm-windows* |
-| GitHub CLI | ✓ | ✓ |
-| jq | ✓ | ✓ |
-| Package Manager | Homebrew | Winget/Chocolatey |
+| Tool              | macOS    | Windows           |
+| ----------------- | -------- | ----------------- |
+| Git               | ✓        | ✓                 |
+| Python 3.12       | ✓        | ✓                 |
+| Node.js (via nvm) | ✓ _nvm_  | ✓ _nvm-windows_   |
+| GitHub CLI        | ✓        | ✓                 |
+| jq                | ✓        | ✓                 |
+| Package Manager   | Homebrew | Winget/Chocolatey |
 
 ### macOS-Specific
 
-| Tool | Description |
-|------|-------------|
-| Xcode Command Line Tools | Apple developer tools |
-| nvm | Node Version Manager |
-| zsh-autosuggestions | Fish-like autosuggestions for zsh |
-| zsh-syntax-highlighting | Syntax highlighting for zsh |
+| Tool                     | Description                       |
+| ------------------------ | --------------------------------- |
+| Xcode Command Line Tools | Apple developer tools             |
+| nvm                      | Node Version Manager              |
+| zsh-autosuggestions      | Fish-like autosuggestions for zsh |
+| zsh-syntax-highlighting  | Syntax highlighting for zsh       |
 
 ### Windows-Specific
 
-| Tool | Description |
-|------|-------------|
-| Winget | Windows Package Manager (modern) |
-| Chocolatey | Windows Package Manager (fallback) |
-| Windows Terminal | Modern terminal application |
+| Tool              | Description                             |
+| ----------------- | --------------------------------------- |
+| Winget            | Windows Package Manager (modern)        |
+| Chocolatey        | Windows Package Manager (fallback)      |
+| Windows Terminal  | Modern terminal application             |
 | Long Path Support | Enable paths longer than 260 characters |
-| Developer Mode | Enable development features |
+| Developer Mode    | Enable development features             |
 
 ### VS Code Extensions
 
@@ -122,6 +123,7 @@ dotfiles/
     │   ├── install-dev-tools.sh      # Development tools
     │   ├── install-vscode.sh         # VS Code configuration
     │   ├── install-zsh-plugins.sh    # ZSH plugins
+   │   ├── configure-github-accounts.sh  # Multi-account GitHub SSH setup
     │   └── configure-macos.sh        # macOS preferences
     │
     └── Windows Scripts (PowerShell):
@@ -207,6 +209,7 @@ All installations completed!
 
 1. **Via Brewfile** (recommended):
    Edit `configs/Brewfile` and add:
+
    ```ruby
    cask "application-name"   # For GUI apps
    brew "formula-name"       # For CLI tools
@@ -221,6 +224,7 @@ All installations completed!
 ### Adding VS Code Extensions
 
 Edit `configs/vscode/extensions.txt` and add the extension ID:
+
 ```
 publisher.extension-name
 ```
@@ -234,6 +238,50 @@ Edit `scripts/install-zsh-plugins.sh` or create a new file in `configs/zsh/`.
 ### Adding macOS Preferences
 
 Edit `scripts/configure-macos.sh` to add new `defaults write` commands.
+
+### Configuring 2 GitHub Accounts (SSH)
+
+Use the built-in helper script:
+
+```bash
+./scripts/configure-github-accounts.sh
+```
+
+It will:
+
+- Create separate SSH keys for personal and work accounts
+- Add SSH host aliases in `~/.ssh/config` (for example: `github-personal`, `github-work`)
+- Create per-account Git identity files (`~/.gitconfig-personal`, `~/.gitconfig-work`)
+- Configure global `includeIf` rules by repo directory
+
+You can also run it through the main setup script:
+
+```bash
+SETUP_GITHUB_MULTI_ACCOUNT=1 ./setup.sh
+```
+
+By default, the script opens the GitHub SSH key page and guides you through adding personal and work keys.
+
+- Disable browser auto-open:
+
+```bash
+OPEN_GITHUB_SSH_PAGES=0 ./scripts/configure-github-accounts.sh
+```
+
+### Download & Integrate File Skills
+
+Shared helper functions are available to download and integrate files safely:
+
+- macOS (`scripts/utils.sh`):
+  - `download_file <url> <destination>`
+  - `integrate_file <source> <target> [mode]`
+  - `install_remote_file <url> <target> [mode]`
+- Windows (`scripts/utils-windows.ps1`):
+  - `Get-RemoteFile -Uri <url> -OutFile <path>`
+  - `Integrate-File -SourcePath <source> -TargetPath <target>`
+  - `Install-RemoteFile -Uri <url> -TargetPath <target>`
+
+These helpers create parent directories, back up existing files, and then integrate the new file into place.
 
 ## Running Individual Scripts
 
@@ -256,6 +304,9 @@ You can run specific scripts independently:
 
 # Configure macOS
 ./scripts/configure-macos.sh
+
+# Configure dual GitHub accounts (SSH)
+./scripts/configure-github-accounts.sh
 ```
 
 ### Windows
@@ -299,11 +350,13 @@ You can also skip specific steps when running the main setup:
 After the setup completes:
 
 1. **Restart Terminal** or run:
+
    ```bash
    source ~/.zshrc
    ```
 
 2. **Authenticate GitHub CLI**:
+
    ```bash
    gh auth login
    ```
@@ -328,21 +381,23 @@ After the setup completes:
    - Open PowerShell and test: `python --version`, `node --version`, `git --version`
 
 2. **Authenticate GitHub CLI**:
+
    ```powershell
    gh auth login
    ```
 
 3. **Manage Node.js Versions** (nvm-windows):
+
    ```powershell
    # List available versions
    nvm list available
-   
+
    # Install a specific version
    nvm install 20.10.0
-   
+
    # Use a version
    nvm use 20.10.0
-   
+
    # View currently selected version
    nvm current
    ```
@@ -357,6 +412,7 @@ After the setup completes:
    - Install fonts from: Settings > Text Editor > Font > Font Family
 
 6. **Configure Git** (if not auto-detected):
+
    ```powershell
    git config --global user.email "your-email@example.com"
    git config --global user.name "Your Name"
@@ -393,16 +449,17 @@ curl -fsSL https://raw.githubusercontent.com/raulgcode/dotfiles/main/setup.sh | 
 ```
 
 Notes:
+
 - You can override the repository used by the installer by setting `DOTFILES_REPO`:
 
 ```bash
 DOTFILES_REPO="https://github.com/yourname/dotfiles.git" \
    curl -fsSL https://raw.githubusercontent.com/raulgcode/dotfiles/main/setup.sh | bash -s --
 ```
+
 - The installer attempts a `git` clone when available and falls back to downloading a tarball of the `main` branch when `git` is not present.
 - The script detects non-interactive shells and proceeds without prompting; if you run it in an interactive terminal you'll see a confirmation prompt before continuing.
 - For safety, review `setup.sh` before piping it into `bash` if you have concerns.
-
 
 ## Troubleshooting
 
@@ -452,6 +509,7 @@ sudo chown -R $(whoami) /usr/local/var/homebrew
 #### PowerShell Execution Policy
 
 If you get an error about script execution, run:
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
@@ -459,6 +517,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 #### Package Manager Not Found
 
 If Winget is not available:
+
 1. Update Windows 10/11 to the latest version
 2. Install Microsoft Store App Installer from Microsoft Store
 3. Or run setup with Chocolatey as fallback (automatic)
@@ -466,11 +525,13 @@ If Winget is not available:
 #### VS Code Extensions Not Installing
 
 1. Ensure VS Code is installed and in PATH:
+
    ```powershell
    code --version
    ```
 
 2. If not found, add VS Code to PATH:
+
    ```powershell
    $VSCodePath = "C:\Users\$env:USERNAME\AppData\Local\Programs\Microsoft VS Code\bin"
    [Environment]::SetEnvironmentVariable("PATH", "$env:PATH;$VSCodePath", "User")
@@ -481,6 +542,7 @@ If Winget is not available:
 #### Git Command Not Found
 
 Ensure Git is in PATH:
+
 ```powershell
 git --version
 ```
@@ -490,6 +552,7 @@ If not found, add to PATH manually or reinstall Git with "Add to PATH" option se
 #### Admin Rights Required
 
 The setup requires administrator privileges. Run PowerShell as Administrator:
+
 1. Right-click PowerShell or Windows Terminal
 2. Select "Run as administrator"
 3. Then run the setup script
@@ -497,6 +560,7 @@ The setup requires administrator privileges. Run PowerShell as Administrator:
 #### Docker Desktop Not Starting
 
 Docker requires Hyper-V on Windows Home Edition. Enable it:
+
 ```powershell
 Enable-WindowsOptionalFeature -FeatureName Hyper-V -All -Online
 # Restart your computer after
@@ -505,6 +569,7 @@ Enable-WindowsOptionalFeature -FeatureName Hyper-V -All -Online
 #### nvm-windows Not Found After Installation
 
 After installing nvm-windows, you may need to restart PowerShell or your computer:
+
 ```powershell
 # Close and reopen PowerShell, then verify:
 nvm --version
@@ -515,6 +580,7 @@ $NVMPath = "$env:PROGRAMFILES\nvm"
 ```
 
 Then install Node.js LTS:
+
 ```powershell
 nvm install lts
 nvm use lts

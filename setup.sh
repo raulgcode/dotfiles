@@ -96,7 +96,7 @@ command_exists() {
 
 main() {
     print_header "macOS Development Environment Setup"
-    
+
     echo -e "${BLUE}This script will install and configure:${NC}"
     echo "  • Xcode Command Line Tools"
     echo "  • Homebrew"
@@ -104,8 +104,9 @@ main() {
     echo "  • Development tools (Python, Node.js via nvm, gh CLI)"
     echo "  • VS Code extensions"
     echo "  • ZSH plugins (autosuggestions, syntax-highlighting)"
+    echo "  • Optional GitHub multi-account SSH setup"
     echo ""
-    
+
     # Source utility functions (needed by early steps)
     source "$SCRIPT_DIR/scripts/utils.sh"
 
@@ -143,6 +144,14 @@ main() {
     print_header "Configuring ZSH Plugins"
     source "$SCRIPT_DIR/scripts/install-zsh-plugins.sh"
 
+    # Optional GitHub multi-account setup (set SETUP_GITHUB_MULTI_ACCOUNT=1 to enable)
+    if [ "${SETUP_GITHUB_MULTI_ACCOUNT:-0}" = "1" ]; then
+        print_header "Configuring GitHub Multi-Account SSH"
+        source "$SCRIPT_DIR/scripts/configure-github-accounts.sh"
+    else
+        print_info "Skipping GitHub multi-account setup (set SETUP_GITHUB_MULTI_ACCOUNT=1 to enable)"
+    fi
+
     # macOS settings were applied early; skip here unless explicitly requested
     if [ "${FORCE_MACOS_CONFIG_AT_END:-0}" = "1" ]; then
         print_header "Applying macOS Settings (end)"
@@ -154,7 +163,7 @@ main() {
 
     # Final summary
     print_header "Setup Complete!"
-    
+
     echo -e "${GREEN}Your macOS development environment is ready!${NC}"
     echo ""
     echo -e "${YELLOW}Next steps:${NC}"
@@ -162,14 +171,15 @@ main() {
     echo "  2. Open VS Code and sign in to sync settings"
     echo "  3. Open Docker Desktop and complete setup"
     echo "  4. Run 'gh auth login' to authenticate with GitHub"
+    echo "  5. Optional: run 'SETUP_GITHUB_MULTI_ACCOUNT=1 ./setup.sh' for dual GitHub SSH identities"
     echo ""
-    
+
     # Show warning if there were failures
     if [[ ${#FAILED_INSTALLATIONS[@]} -gt 0 ]]; then
         echo -e "${YELLOW}Note: Some installations failed. Review the report above.${NC}"
         echo ""
     fi
-    
+
     print_success "Enjoy your new development setup! 🚀"
 }
 

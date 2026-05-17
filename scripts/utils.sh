@@ -59,7 +59,7 @@ print_installation_report() {
     echo -e "${PURPLE}  Installation Report${NC}"
     echo -e "${PURPLE}============================================================${NC}"
     echo ""
-    
+
     # Successful installations
     if [[ ${#SUCCESSFUL_INSTALLATIONS[@]} -gt 0 ]]; then
         echo -e "${GREEN}✓ Successfully Installed (${#SUCCESSFUL_INSTALLATIONS[@]}):${NC}"
@@ -68,7 +68,7 @@ print_installation_report() {
         done
         echo ""
     fi
-    
+
     # Upgraded installations
     if [[ ${#UPGRADED_INSTALLATIONS[@]} -gt 0 ]]; then
         echo -e "${BLUE}↑ Upgraded (${#UPGRADED_INSTALLATIONS[@]}):${NC}"
@@ -77,7 +77,7 @@ print_installation_report() {
         done
         echo ""
     fi
-    
+
     # Skipped installations (already up to date)
     if [[ ${#SKIPPED_INSTALLATIONS[@]} -gt 0 ]]; then
         echo -e "${YELLOW}⊘ Skipped (${#SKIPPED_INSTALLATIONS[@]}):${NC}"
@@ -86,7 +86,7 @@ print_installation_report() {
         done
         echo ""
     fi
-    
+
     # Failed installations
     if [[ ${#FAILED_INSTALLATIONS[@]} -gt 0 ]]; then
         echo -e "${RED}✗ Failed (${#FAILED_INSTALLATIONS[@]}):${NC}"
@@ -172,10 +172,10 @@ install_formula() {
     local formula="$1"
     local old_version=""
     local new_version=""
-    
+
     if formula_installed "$formula"; then
         old_version=$(get_formula_version "$formula")
-        
+
         # Check if upgrade is available
         if formula_outdated "$formula"; then
             print_step "Upgrading $formula ($old_version)..."
@@ -210,6 +210,7 @@ get_app_name_for_cask() {
     case "$cask" in
         google-chrome) echo "Google Chrome" ;;
         visual-studio-code) echo "Visual Studio Code" ;;
+        cursor) echo "Cursor" ;;
         docker) echo "Docker" ;;
         postman) echo "Postman" ;;
         discord) echo "Discord" ;;
@@ -235,11 +236,11 @@ install_cask() {
     local old_version=""
     local new_version=""
     local app_name=""
-    
+
     # First check if installed via Homebrew
     if cask_installed "$cask"; then
         old_version=$(get_cask_version "$cask")
-        
+
         # Check if upgrade is available
         if cask_outdated "$cask"; then
             print_step "Upgrading $cask ($old_version)..."
@@ -257,7 +258,7 @@ install_cask() {
         fi
         return 0
     fi
-    
+
     # Check if app is installed outside of Homebrew (e.g., manually or via App Store)
     app_name=$(get_app_name_for_cask "$cask")
     if [[ -n "$app_name" ]] && app_installed "$app_name"; then
@@ -265,7 +266,7 @@ install_cask() {
         add_skipped "$cask" "Already installed (non-Homebrew)"
         return 0
     fi
-    
+
     # Not installed, proceed with installation
     print_step "Installing $cask..."
     if brew install --cask "$cask" 2>&1; then
@@ -288,7 +289,7 @@ install_cask() {
 safe_exec() {
     local description="$1"
     shift
-    
+
     print_step "$description..."
     if "$@" 2>&1; then
         print_success "$description completed"
@@ -304,7 +305,7 @@ safe_exec() {
 add_to_file() {
     local line="$1"
     local file="$2"
-    
+
     if ! grep -qF "$line" "$file" 2>/dev/null; then
         echo "$line" >> "$file"
         return 0
@@ -326,16 +327,95 @@ wait_for_app() {
     local app_name="$1"
     local max_wait="${2:-30}"
     local waited=0
-    
+
     while ! app_installed "$app_name" && [[ $waited -lt $max_wait ]]; do
         sleep 1
         ((waited++))
     done
-    
+
     app_installed "$app_name"
 }
 
 # Get the absolute path of a directory
 get_script_dir() {
     cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
+}
+
+# Download a remote file to a local path (curl/wget fallback)
+download_file() {
+    local url="$1"
+    local destination="$2"
+
+    if [[ -z "$url" || -z "$destination" ]]; then
+        print_error "download_file requires URL and destination"
+        return 1
+    fi
+
+    mkdir -p "$(dirname "$destination")"
+
+    if command_exists curl; then
+        curl -fsSL "$url" -o "$destination"
+    elif command_exists wget; then
+        wget -qO "$destination" "$url"
+    else
+        print_error "Neither curl nor wget is available"
+        return 1
+    fi
+}
+
+# Integrate a file into place safely by backing up existing content first
+integrate_file() {
+    local source_file="$1"
+    local target_file="$2"
+    local file_mode="${3:-}"
+
+    if [[ -z "$source_file" || -z "$target_file" ]]; then
+        print_error "integrate_file requires source and target paths"
+        return 1
+    fi
+
+    if [[ ! -f "$source_file" ]]; then
+        print_error "Source file not found: $source_file"
+        return 1
+    fi
+
+    mkdir -p "$(dirname "$target_file")"
+
+    if [[ -f "$target_file" ]]; then
+        backup_file "$target_file"
+    fi
+
+    cp "$source_file" "$target_file"
+
+    if [[ -n "$file_mode" ]]; then
+        chmod "$file_mode" "$target_file"
+    fi
+
+    print_success "Integrated file into $target_file"
+    return 0
+}
+
+# Download a file and integrate it into a target path in one step
+install_remote_file() {
+    local url="$1"
+    local target_file="$2"
+    local file_mode="${3:-}"
+    local tmp_file
+
+    tmp_file="$(mktemp)"
+    if ! download_file "$url" "$tmp_file"; then
+        rm -f "$tmp_file"
+        add_failure "$target_file" "Download failed"
+        return 1
+    fi
+
+    if ! integrate_file "$tmp_file" "$target_file" "$file_mode"; then
+        rm -f "$tmp_file"
+        add_failure "$target_file" "Integration failed"
+        return 1
+    fi
+
+    rm -f "$tmp_file"
+    add_success "$target_file"
+    return 0
 }

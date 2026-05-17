@@ -1,6 +1,6 @@
 #===============================================================================
 # Brewfile
-# 
+#
 # Homebrew Bundle file for automated installation
 # Run: brew bundle --file=configs/Brewfile
 #
@@ -47,6 +47,7 @@ cask "google-chrome"
 
 # Development
 cask "visual-studio-code"
+cask "cursor"
 cask "docker"
 cask "postman"
 cask "antigravity"
